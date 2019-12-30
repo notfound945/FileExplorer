@@ -585,7 +585,6 @@ int main() {
     rootLinkList = linkList;
     currentDir = linkList;
     AutoGenterateFile();
-//    test();
     ShowCommandLine();
     return 0;
 }
