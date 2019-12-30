@@ -398,7 +398,6 @@ void GetDir(char name[20]) {
 
 // 命令识别
 void ExecuteCommand(char commandLine[10][20]) {
-    printf("%s \n", commandLine[0]);
     if (!strcmp(commandLine[0], "exit")) {
         printf("退出程序.\n");
         exit(0);
@@ -486,6 +485,8 @@ void ExecuteCommand(char commandLine[10][20]) {
     } else if (!strcmp(commandLine[0], "asc")) {
         printf("升序排列\n");
         SortFile(currentDir, 1);
+    } else {
+        printf("参数不正确，如果你不知道用法请键入 help 了解。\n");
     }
 }
 
@@ -505,11 +506,11 @@ void AutoGenterateFile() {
     MakeFile(currentDir, GetFile("system.ini", 1));
     MakeFile(currentDir, GetFile("Document", 0));
     GetDir("User");
-    printf("AutoGenterateFile(). \n");
-    Dir(currentDir);
+    printf("\nAutoGenterateFile(). \n");
     MakeFile(currentDir, GetFile("john", 0));
     MakeFile(currentDir, GetFile("config.con", 1));
     MakeFile(currentDir, GetFile("phl", 0));
+    Dir(currentDir);
 //    UpdateInfo();
     GoHome();
 }
@@ -555,7 +556,7 @@ void ShowCommandLine() {
         ShowPath(pathStackList);
         // 等待用户输入
         gets(commandLine);
-        // 输入命令字符分割
+        // 命令字符串分割
         char *result = NULL;
         result = strtok(commandLine, spilt);
         while (result != NULL) {
