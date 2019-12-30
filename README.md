@@ -1,2 +1,8 @@
-# Explorer
- Simulate Explorer
+# 模拟文件资源管理器 
+ + 文件小助手
+  
+  
+    **采用技术**
+    
+    + 链表
+    + 栈
