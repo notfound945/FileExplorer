@@ -30,7 +30,7 @@ LinkList rootLinkList;
 PathStackList pathStackList;
 // 根目录名
 char rootPath[] = "C:";
-
+// 帮助页
 void ShowWelcome();
 
 void Dir(LinkList linkList);
@@ -77,7 +77,7 @@ void Pop(PathStackList pathStackList) {
         temp->next = NULL;
         free(del);
     } else {
-        printf("栈为空\n ");
+        printf("路径栈为空\n ");
     }
 }
 

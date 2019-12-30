@@ -12,25 +12,25 @@ typedef struct LinkNode {
 LinkList currentDir;
 LinkList rootDir;
 
-LinkList Init() {
+LinkList Init(char name[]) {
     LinkNode *head = (LinkNode *) malloc(sizeof(LinkNode));
-    strcpy(head->name, "root");
+    strcpy(head->name, name);
     head->next = NULL;
     head->downNext = NULL;
     return head;
 }
 
 void Display(LinkList linkList) {
-    printf("\n");
-    if (linkList != NULL) {
-        while (linkList) {
-            printf("%s ", linkList->name);
-            linkList = linkList->next;
+    LinkList temp = linkList->next;
+    if (temp != NULL) {
+        while (temp) {
+            printf("%s ", temp->name);
+            temp = temp->next;
         }
+        printf("\n");
     } else {
-        printf("<没有任何内容>");
+        printf("<没有任何内容>\n");
     }
-    printf("\n");
 }
 
 void CreateNext(LinkList linkList, char name[20]) {
@@ -44,56 +44,40 @@ void CreateNext(LinkList linkList, char name[20]) {
     linkList->next = newNode;
 }
 
-void CreateDownNext(LinkList linkList, char name[20]) {
-    LinkNode *head = (LinkNode *) malloc(sizeof(LinkNode));
-    LinkNode *temp = (LinkNode *) malloc(sizeof(LinkNode));
-    strcpy(head->name, "head");
-    head->downNext = NULL;
-    head->next = NULL;
-
-    strcpy(temp->name, name);
-    temp->next = head;
-    temp->downNext = linkList->downNext;
-    linkList->downNext = temp;
-}
-
 void GetDir(char name[20]) {
-    LinkList temp = Init();
-    temp->downNext = Init();
-    temp->next = currentDir;
-    printf("\nGetDir(%s)\n", name);
-    Display(temp);
-    while (temp->next) {
-        if (!strcmp(temp->next->name, name)) {
-            printf("\n找到 %s 文件\n", name);
-            printf(" -%s- \n ", temp->name);
-            currentDir = temp->downNext;
-            return;
+    printf("GetDir()\n");
+    LinkList temp = currentDir->next;
+    if (temp != NULL) {
+        while (temp) {
+            if (!strcmp(temp->name, name)) {
+                printf("%s ", temp->name);
+                temp->downNext = Init(name);
+                currentDir = temp->downNext;
+            }
+            temp = temp->next;
         }
-        temp = temp->next;
+        printf("\n");
+    } else {
+        printf("<没有任何内容>\n");
     }
-    printf("\n未找到\n");
-    return;
 }
 
 int main() {
-    LinkList linkList = Init();
-    currentDir = linkList;
-    rootDir = linkList;
-    printf("创建下级目录\n");
-    CreateDownNext(currentDir, "main");
-//    Display(currentDir->downNext);
-    printf("切换当前目录 downNext\n");
-    currentDir = rootDir->downNext;
-    printf("创建文件\n");
-    CreateNext(currentDir, "sub");
-    CreateNext(currentDir, "testsub");
-    CreateNext(currentDir, "666666");
-    printf("打印当前目录\n");
-    Display(currentDir->next);
-    GetDir("666666");
-    printf("switch 66666\n");
-//    CreateNext(currentDir, "666");
+    LinkList linkList = Init("Root");
+    linkList->downNext = Init("head");
+    currentDir = linkList->downNext;
+    rootDir = linkList->downNext;
     Display(currentDir);
+    CreateNext(currentDir, "phl");
+    CreateNext(currentDir, "fyl");
+    printf("create\n");
+    Display(currentDir);
+    GetDir("phl");
+    CreateNext(currentDir, "demo.exe");
+    CreateNext(currentDir, "main.exe");
+    printf("show()\n");
+    Display(currentDir);
+    printf("root\n");
+    Display(rootDir);
     return 0;
 }
