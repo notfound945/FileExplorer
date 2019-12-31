@@ -35,7 +35,6 @@ void Display(LinkList linkList) {
 }
 
 void CreateNext(LinkList linkList, char name[20]) {
-    LinkList temp = linkList;
     while(linkList->next) {
         linkList = linkList->next;
     }
@@ -44,7 +43,6 @@ void CreateNext(LinkList linkList, char name[20]) {
     newNode->next = linkList->next;
     newNode->downNext = NULL;
     linkList->next = newNode;
-    rootDir = temp;
 }
 
 void GetDir(char name[20]) {
@@ -80,26 +78,16 @@ int main() {
     Display(currentDir);
     CreateNext(currentDir, "phl");
     CreateNext(currentDir, "fyl");
-    printf("create\n");
     Display(currentDir);
     GetDir("phl");
-    CreateNext(currentDir, "demo.exe");
     CreateNext(currentDir, "main.exe");
+    CreateNext(currentDir, "demo.cdp");
     CreateNext(currentDir, "Music");
     GetDir("Music");
-    CreateNext(currentDir, "EXO");
     CreateNext(currentDir, "CXK");
-    printf("go back root\n");
+    CreateNext(currentDir, "EXO");
+    CreateNext(currentDir, "SHE");
     GoHome(linkList);
     Display(currentDir);
-    printf("Try again\n");
-    GetDir("dsf");
-    GetDir("phl");
-    GetDir("Music");
-    Display(currentDir);
-    printf("root Dir\n");
-    Display(rootDir);
-    printf("linklist\n");
-
     return 0;
 }
