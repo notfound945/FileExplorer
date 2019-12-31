@@ -30,6 +30,7 @@ LinkList rootLinkList;
 PathStackList pathStackList;
 // 根目录名
 char rootPath[] = "C:";
+
 // 帮助页
 void ShowWelcome();
 
@@ -120,6 +121,7 @@ int Check(char name[20]) {
 }
 
 // 更新文件大小信息
+// TODO 当文件夹下新建一个文件时就获取其文件大小，更新其文件夹大小
 void UpdateInfo() {
     int size = 0;
     LinkList temp = InitLinkList("");
@@ -242,7 +244,7 @@ void GoSuper() {
 
 // 列出当前目录文件
 void Dir(LinkList linkList) {
-    LinkList temp = linkList;
+    LinkList temp = linkList->next;
     printf("名称 \t\t 大小 \t\t 类型 \n");
     if (temp == NULL) {
         printf("\t\t<没有任何文件>\n");
@@ -290,48 +292,30 @@ void ShowSortFileList(File fileList[], int length) {
     }
 }
 
-// 快速排序 升序
-void QuickSortByAsc(File fileList[], int L, int R) {
+// 快速排序 1为升序 0为降序
+void QuickSortFile(File fileList[], int L, int R, int type) {
     int i = L;
     int j = R;
     //支点
     int pivot = fileList[(L + R) / 2].size;
     //左右两端进行扫描，只要两端还没有交替，就一直扫描
     while (i <= j) {
-        //寻找直到比支点大的数
-        while (pivot > fileList[i].size)
-            i++;
-        //寻找直到比支点小的数
-        while (pivot < fileList[j].size)
-            j--;
-        //此时已经分别找到了比支点小的数(右边)、比支点大的数(左边)，它们进行交换
-            if (i <= j) {
-                File temp = fileList[i];
-                fileList[i] = fileList[j];
-                fileList[j] = temp;
+        if (type == 1) {
+            //寻找直到比支点大的数
+            while (pivot > fileList[i].size)
                 i++;
+            //寻找直到比支点小的数
+            while (pivot < fileList[j].size)
                 j--;
-            }
-    }
-    //上面一个while保证了第一趟排序支点的左边比支点小，支点的右边比支点大了。
-    //“左边”再做排序，直到左边剩下一个数(递归出口)
-    if (L < j)
-        QuickSortByAsc(fileList, L, j);
-    //“右边”再做排序，直到右边剩下一个数(递归出口)
-    if (i < R)
-        QuickSortByAsc(fileList, i, R);
-}
-
-// 快速排序 降序
-void QuickSortByDesc(File fileList[], int L, int R) {
-    int i = L;
-    int j = R;
-    int pivot = fileList[(L + R) / 2].size;
-    while (i <= j) {
-        while (pivot < fileList[i].size)
-            i++;
-        while (pivot > fileList[j].size)
-            j--;
+        } else if (type == 0) {
+            //寻找直到比支点小的数
+            while (pivot < fileList[i].size)
+                i++;
+            //寻找直到比支点大的数
+            while (pivot > fileList[j].size)
+                j--;
+        }
+        //此时已经分别找到了比支点小的数(右边)、比支点大的数(左边)，它们进行交换
         if (i <= j) {
             File temp = fileList[i];
             fileList[i] = fileList[j];
@@ -340,10 +324,13 @@ void QuickSortByDesc(File fileList[], int L, int R) {
             j--;
         }
     }
+    //上面一个while保证了第一趟排序支点的左边比支点小，支点的右边比支点大了。
+    //“左边”再做排序，直到左边剩下一个数(递归出口)
     if (L < j)
-        QuickSortByDesc(fileList, L, j);
+        QuickSortFile(fileList, L, j, type);
+    //“右边”再做排序，直到右边剩下一个数(递归出口)
     if (i < R)
-        QuickSortByDesc(fileList, i, R);
+        QuickSortFile(fileList, i, R, type);
 }
 
 // 文件大小排序
@@ -362,38 +349,33 @@ void SortFile(LinkList linkList, int type) {
             i++;
         }
     }
-    if (type == 1) {
-        QuickSortByAsc(fileList, 0, length-1);
-    } else {
-        QuickSortByDesc(fileList, 0, length-1);
-    }
+    QuickSortFile(fileList, 0, length - 1, type);
     ShowSortFileList(fileList, length);
 }
 
 // 取得目录
 void GetDir(char name[20]) {
-    LinkList temp = InitLinkList("");
-    temp = currentDir;
-    while (temp->next) {
-        if (!strcmp(temp->next->file->name, name)) {
-            printf("找到 %s \n", name);
-            if (temp->next->file->type == 0) {
-                // 压入路径栈
-                Push(pathStackList, name);
-                printf("切换到 %s 目录\n", temp->next->file->name);
-                strcpy(currentDir->file->name, temp->next->file->name);
+    LinkList temp = currentDir->next;
+    if (temp != NULL) {
+        while (temp) {
+            if (!strcmp(temp->file->name, name)) {
+                printf("GetDir(%s)\n", temp->file->name);
                 temp->downNext = InitLinkList(name);
                 currentDir = temp->downNext;
-                return;
-            } else {
-                printf("%s 为文件\n", temp->next->file->name);
+                // 目录名压入栈
+                Push(pathStackList, name);
+                printf("currentDir %s\n", currentDir->file->name);
+                Dir(currentDir);
                 return;
             }
+            temp = temp->next;
         }
-        temp = temp->next;
+        printf("没有找到名为 %s 的文件.\n", name);
+        return;
+    } else {
+        printf("<没有任何内容>\n");
+        return;
     }
-    printf("未找到 %s\n", name);
-    return;
 }
 
 // 命令识别
@@ -409,7 +391,7 @@ void ExecuteCommand(char commandLine[10][20]) {
         system("cls");
     } else if (!strcmp(commandLine[0], "dir")) {
         printf("列出当前目录所有文件.\n");
-        Dir(currentDir->next);
+        Dir(currentDir);
     } else if (!strcmp(commandLine[0], "mk")) {
         printf("新建文件.\n");
         if (commandLine[1] != NULL) {
@@ -510,15 +492,20 @@ void AutoGenterateFile() {
     MakeFile(currentDir, GetFile("john", 0));
     MakeFile(currentDir, GetFile("config.con", 1));
     MakeFile(currentDir, GetFile("phl", 0));
+    MakeFile(currentDir, GetFile("fyl", 0));
     Dir(currentDir);
 //    UpdateInfo();
     GoHome();
+    printf(">====\n");
+    GetDir("User");
+    Dir(currentDir);
+    printf("====<\n");
 }
 
 // 显示路径
 void ShowPath(PathStackList pathStackList) {
     PathStackList temp = pathStackList->next;
-    while(temp) {
+    while (temp) {
         printf("%s/", temp->name);
         temp = temp->next;
     }
@@ -580,12 +567,18 @@ void test() {
 
 // 主函数
 int main() {
+    // 初始化文件链表
     LinkList linkList = InitLinkList(rootPath);
+    linkList->downNext = InitLinkList(rootPath);
+    // 初始化路径栈
     pathStackList = InitPathStack();
     Push(pathStackList, rootPath);
-    rootLinkList = linkList;
-    currentDir = linkList;
+    // 初始化全局变量
+    rootLinkList = linkList->downNext;
+    currentDir = linkList->downNext;
+    // 添加预置数据
     AutoGenterateFile();
+    // 输出命令行界面
     ShowCommandLine();
     return 0;
 }

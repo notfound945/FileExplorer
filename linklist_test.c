@@ -53,12 +53,15 @@ void GetDir(char name[20]) {
                 printf("%s ", temp->name);
                 temp->downNext = Init(name);
                 currentDir = temp->downNext;
+                return;
             }
             temp = temp->next;
         }
-        printf("\n");
+        printf("<未找到此文件>\n");
+        return;
     } else {
         printf("<没有任何内容>\n");
+        return;
     }
 }
 
@@ -75,9 +78,18 @@ int main() {
     GetDir("phl");
     CreateNext(currentDir, "demo.exe");
     CreateNext(currentDir, "main.exe");
+    CreateNext(currentDir, "Music");
+    GetDir("Music");
+    CreateNext(currentDir, "EXO");
+    CreateNext(currentDir, "CXK");
     printf("show()\n");
     Display(currentDir);
     printf("root\n");
     Display(rootDir);
+    printf("Try again\n");
+    GetDir("dsf");
+    GetDir("phl");
+//    GetDir("Music");
+    Display(currentDir);
     return 0;
 }
