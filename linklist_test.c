@@ -68,8 +68,8 @@ void GetDir(char name[20]) {
     }
 }
 
-void GoHome() {
-    currentDir = rootDir;
+void GoHome(LinkList linkList) {
+    currentDir = linkList->downNext;
 }
 
 int main() {
@@ -90,7 +90,7 @@ int main() {
     CreateNext(currentDir, "EXO");
     CreateNext(currentDir, "CXK");
     printf("go back root\n");
-    GoHome();
+    GoHome(linkList);
     Display(currentDir);
     printf("Try again\n");
     GetDir("dsf");
@@ -100,6 +100,6 @@ int main() {
     printf("root Dir\n");
     Display(rootDir);
     printf("linklist\n");
-    Display(linkList->downNext);
+
     return 0;
 }

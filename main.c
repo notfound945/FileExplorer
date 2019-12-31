@@ -226,9 +226,9 @@ File *GetFile(char name[20], int type) {
 }
 
 // 返回根目录
-void GoHome() {
-    currentDir = rootLinkList;
-    strcpy(currentDir->file->name, rootPath);
+void GoHome(LinkList linkList) {
+
+    currentDir = linkList->downNext;
     // 清空路径栈
     CleanStack(pathStackList);
     Push(pathStackList, rootPath);
@@ -381,7 +381,7 @@ void GetDir(char name[20]) {
 }
 
 // 命令识别
-void ExecuteCommand(char commandLine[10][20]) {
+void ExecuteCommand(LinkList  linkList, char commandLine[10][20]) {
     if (!strcmp(commandLine[0], "exit")) {
         printf("退出程序.\n");
         exit(0);
@@ -429,7 +429,7 @@ void ExecuteCommand(char commandLine[10][20]) {
                 GoSuper();
             } else if (!strcmp(commandLine[1], "/")) {
                 printf("返回根目录.\n");
-                GoHome();
+                GoHome(linkList);
             } else {
                 printf("打开 %s \n", commandLine[1]);
                 GetDir(commandLine[1]);
@@ -475,7 +475,7 @@ void ExecuteCommand(char commandLine[10][20]) {
 }
 
 // 自动生成目录文件
-void AutoGenterateFile() {
+void AutoGenterateFile(LinkList linkList) {
     MakeFile(currentDir, GetFile("Music", 0));
     MakeFile(currentDir, GetFile("eclipse.exe", 1));
     MakeFile(currentDir, GetFile("User", 0));
@@ -497,7 +497,7 @@ void AutoGenterateFile() {
     MakeFile(currentDir, GetFile("fyl", 0));
 //    Dir(currentDir);
 //    UpdateInfo();
-    GoHome();
+    GoHome(linkList);
 }
 
 // 显示路径
@@ -530,7 +530,7 @@ void ShowWelcome() {
 }
 
 // 命令行输入
-void ShowCommandLine() {
+void ShowCommandLine(LinkList linkList) {
     char commandLine[30];
     char parameter[10][20];
     char spilt[] = " ";
@@ -550,7 +550,7 @@ void ShowCommandLine() {
             i++;
         }
         // 执行命令
-        ExecuteCommand(parameter);
+        ExecuteCommand(linkList, parameter);
         // 清除数组内容
         memset(parameter, 0, sizeof parameter);
         memset(commandLine, 0, sizeof commandLine);
@@ -575,8 +575,8 @@ int main() {
     rootLinkList = linkList->downNext;
     currentDir = linkList->downNext;
     // 添加预置数据
-    AutoGenterateFile();
+    AutoGenterateFile(linkList);
     // 输出命令行界面
-    ShowCommandLine();
+    ShowCommandLine(linkList);
     return 0;
 }
