@@ -121,7 +121,7 @@ int Check(char name[20]) {
 }
 
 // 更新文件大小信息
-// TODO 当文件夹下新建一个文件时就获取其文件大小，更新其文件夹大小
+// TODO （待实现）当文件夹下新建一个文件时就获取其文件大小，更新其文件夹大小
 void UpdateInfo() {
     int size = 0;
     LinkList temp = InitLinkList("");
@@ -139,6 +139,7 @@ void UpdateInfo() {
 // 新建文件
 void MakeFile(LinkList linkList, File *file) {
     if (file != NULL) {
+//        LinkList temp = linkList;
         LinkNode *newNode = (LinkNode *) malloc(sizeof(LinkNode));
         newNode->file = file;
         newNode->next = linkList->next;
@@ -148,6 +149,7 @@ void MakeFile(LinkList linkList, File *file) {
             newNode->downNext = InitLinkList("<File>");
         }
         linkList->next = newNode;
+//        rootLinkList = linkList;
     } else {
         return;
     }
@@ -493,13 +495,9 @@ void AutoGenterateFile() {
     MakeFile(currentDir, GetFile("config.con", 1));
     MakeFile(currentDir, GetFile("phl", 0));
     MakeFile(currentDir, GetFile("fyl", 0));
-    Dir(currentDir);
+//    Dir(currentDir);
 //    UpdateInfo();
     GoHome();
-    printf(">====\n");
-    GetDir("User");
-    Dir(currentDir);
-    printf("====<\n");
 }
 
 // 显示路径

@@ -11,6 +11,7 @@ typedef struct LinkNode {
 
 LinkList currentDir;
 LinkList rootDir;
+char root[] = "C:";
 
 LinkList Init(char name[]) {
     LinkNode *head = (LinkNode *) malloc(sizeof(LinkNode));
@@ -34,6 +35,7 @@ void Display(LinkList linkList) {
 }
 
 void CreateNext(LinkList linkList, char name[20]) {
+    LinkList temp = linkList;
     while(linkList->next) {
         linkList = linkList->next;
     }
@@ -42,6 +44,7 @@ void CreateNext(LinkList linkList, char name[20]) {
     newNode->next = linkList->next;
     newNode->downNext = NULL;
     linkList->next = newNode;
+    rootDir = temp;
 }
 
 void GetDir(char name[20]) {
@@ -50,26 +53,30 @@ void GetDir(char name[20]) {
     if (temp != NULL) {
         while (temp) {
             if (!strcmp(temp->name, name)) {
-                printf("%s ", temp->name);
+                printf("找到 %s \n", temp->name);
                 temp->downNext = Init(name);
                 currentDir = temp->downNext;
                 return;
             }
             temp = temp->next;
         }
-        printf("<未找到此文件>\n");
+        printf("<未找到此文件 %s >\n", name);
         return;
     } else {
-        printf("<没有任何内容>\n");
+        printf("<查找 %s 时没有任何内容>\n", name);
         return;
     }
 }
 
+void GoHome() {
+    currentDir = rootDir;
+}
+
 int main() {
-    LinkList linkList = Init("Root");
-    linkList->downNext = Init("head");
+    LinkList linkList = Init(root);
+    linkList->downNext = Init(root);
     currentDir = linkList->downNext;
-    rootDir = linkList->downNext;
+    rootDir = linkList;
     Display(currentDir);
     CreateNext(currentDir, "phl");
     CreateNext(currentDir, "fyl");
@@ -82,14 +89,17 @@ int main() {
     GetDir("Music");
     CreateNext(currentDir, "EXO");
     CreateNext(currentDir, "CXK");
-    printf("show()\n");
+    printf("go back root\n");
+    GoHome();
     Display(currentDir);
-    printf("root\n");
-    Display(rootDir);
     printf("Try again\n");
     GetDir("dsf");
     GetDir("phl");
-//    GetDir("Music");
+    GetDir("Music");
     Display(currentDir);
+    printf("root Dir\n");
+    Display(rootDir);
+    printf("linklist\n");
+    Display(linkList->downNext);
     return 0;
 }
