@@ -375,18 +375,26 @@ void SortFile(LinkList linkList, int type) {
 }
 
 // 取得目录
-void GetDir(LinkList linkList, char name[20]) {
-    LinkList temp = linkList->downNext->next;
+void GetDir(char name[20]) {
+    LinkList temp = currentDir->downNext->next;
     while (temp) {
         if (!strcmp(temp->file->name, name)) {
-            printf("找到 %s ", name);
-            Push(temp);
-            currentDir = temp;
-            return;
+            printf("找到 %s \n", name);
+            if (temp->file->type == 0) {
+                Push(temp);
+                currentDir = temp;
+                return;
+            } else if (temp->file->type == 1) {
+                printf("不过 %s 好像是文件，不能以目录形式打开.\n");
+                return;
+            } else {
+                printf("文件类型错误.\n");
+                return;
+            }
         }
         temp = temp->next;
     }
-    printf("未找到 %s", name);
+    printf("未找到 %s\n", name);
     return;
 }
 
@@ -442,7 +450,7 @@ void ExecuteCommand(char commandLine[10][20]) {
                 GoHome();
             } else {
                 printf("打开 %s \n", commandLine[1]);
-                GetDir(currentDir, commandLine[1]);
+                GetDir(commandLine[1]);
             }
         } else {
             return;
@@ -494,18 +502,18 @@ void AutoGenterateFile() {
     MakeFile(GetFile("EFI", 0));
     MakeFile(GetFile("setupact.log", 1));
     MakeFile(GetFile("Windows", 0));
+    GetDir("Windows");
     MakeFile(GetFile("winhlp32.exe", 1));
     MakeFile(GetFile("ProgramData", 0));
     MakeFile(GetFile("whois.exe", 1));
     MakeFile(GetFile("system.ini", 1));
     MakeFile(GetFile("Document", 0));
-    LinkList watch = currentDir;
-    GetDir(currentDir, "User");
+    GoSuper();
+    GetDir("User");
     MakeFile(GetFile("john", 0));
     MakeFile(GetFile("config.con", 1));
     MakeFile(GetFile("phl", 0));
     MakeFile(GetFile("fyl", 0));
-//    UpdateInfo();
     GoHome();
 }
 
@@ -521,7 +529,7 @@ void ShowPath(LinkStackList stack) {
 // 显示帮助菜单
 void ShowWelcome() {
     system("cls");
-    printf("Simulate Explorer [版本 V1.00]\n");
+    printf("Simulate Explorer [版本 V1.10]\n");
     printf("(c) 2019 Personal Development。保留所有权利。\n");
     printf("\n[用法：]\n");
     printf("cd \t\t 打开目录(/表示根目录 | ..表示上层目录)\n");
