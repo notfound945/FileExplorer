@@ -139,7 +139,6 @@ void UpdateInfo() {
 // 新建文件
 void MakeFile(LinkList linkList, File *file) {
     if (file != NULL) {
-//        LinkList temp = linkList;
         LinkNode *newNode = (LinkNode *) malloc(sizeof(LinkNode));
         newNode->file = file;
         newNode->next = linkList->next;
@@ -149,7 +148,6 @@ void MakeFile(LinkList linkList, File *file) {
             newNode->downNext = InitLinkList("<File>");
         }
         linkList->next = newNode;
-//        rootLinkList = linkList;
     } else {
         return;
     }
@@ -227,7 +225,6 @@ File *GetFile(char name[20], int type) {
 
 // 返回根目录
 void GoHome(LinkList linkList) {
-
     currentDir = linkList->downNext;
     // 清空路径栈
     CleanStack(pathStackList);
@@ -366,8 +363,6 @@ void GetDir(char name[20]) {
                 currentDir = temp->downNext;
                 // 目录名压入栈
                 Push(pathStackList, name);
-                printf("currentDir %s\n", currentDir->file->name);
-                Dir(currentDir);
                 return;
             }
             temp = temp->next;

@@ -35,7 +35,7 @@ void Display(LinkList linkList) {
 }
 
 void CreateNext(LinkList linkList, char name[20]) {
-    while(linkList->next) {
+    while (linkList->next) {
         linkList = linkList->next;
     }
     LinkNode *newNode = (LinkNode *) malloc(sizeof(LinkNode));
@@ -48,12 +48,13 @@ void CreateNext(LinkList linkList, char name[20]) {
 void GetDir(char name[20]) {
     printf("GetDir()\n");
     LinkList temp = currentDir->next;
+    temp->downNext = Init(name);
     if (temp != NULL) {
         while (temp) {
             if (!strcmp(temp->name, name)) {
                 printf("ÕÒµ½ %s \n", temp->name);
-                temp->downNext = Init(name);
                 currentDir = temp->downNext;
+                Display(temp->downNext);
                 return;
             }
             temp = temp->next;
@@ -87,7 +88,12 @@ int main() {
     CreateNext(currentDir, "CXK");
     CreateNext(currentDir, "EXO");
     CreateNext(currentDir, "SHE");
+
     GoHome(linkList);
+    printf("GoHome(linkList)");
     Display(currentDir);
+//    GetDir("phl");
+    printf("currentDir->next->downNext ");
+    Display(currentDir->next->downNext);
     return 0;
 }
