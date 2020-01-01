@@ -46,6 +46,18 @@ void Clean(StackList stackList) {
    stackList = Init();
 }
 
+void GetTop(StackList stackList) {
+    StackList temp = stackList->next;
+    if (temp) {
+        while (temp->next) {
+            temp = temp->next;
+        }
+        printf("\n top %d \n", temp->data);
+    } else {
+        printf("Õ»ÒÑ¾­Îª¿Õ");
+    }
+}
+
 void Show(StackList stackList) {
     StackList temp = stackList->next;
     while(temp) {
@@ -59,14 +71,24 @@ int  main() {
     ElemType e;
     StackList stackList = Init();
     Push(stackList, 1);
+    Show(stackList);
+    GetTop(stackList);
     Push(stackList, 2);
+    Show(stackList);
+    GetTop(stackList);
     Push(stackList, 3);
-    Clean(stackList);
+    GetTop(stackList);
+    Show(stackList);
     Pop(stackList, e);
-    Pop(stackList, e);
-    Pop(stackList, e);
+    GetTop(stackList);
+    Show(stackList);
     Pop(stackList, e);
     Show(stackList);
+    Pop(stackList, e);
+    Show(stackList);
+    Pop(stackList, e);
+    printf("NULL get");
+    GetTop(stackList);
     return 0;
 }
 

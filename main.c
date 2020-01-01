@@ -34,7 +34,7 @@ char rootPath[] = "C:";
 // 帮助页
 void ShowWelcome();
 
-void Dir(LinkList linkList);
+void Dir();
 
 // 初始化文件链表
 LinkList InitLinkList(char name[20]) {
@@ -59,29 +59,45 @@ LinkStackNode *InitStack() {
 }
 
 // 入栈
-void Push(LinkStackList stack, LinkList linkList) {
-    while (stack) {
-        stack = stack->next;
+void Push(LinkList linkList) {
+    LinkStackList temp = linkStackList;
+    while (temp->next) {
+        temp = temp->next;
     }
     LinkStackNode *newLink = (LinkStackNode *) malloc(sizeof(LinkStackNode));
     newLink->link = linkList;
-    newLink->next = linkStackList->next;
-    linkStackList->next = newLink;
+    newLink->next = temp->next;
+    temp->next = newLink;
 }
 
 // 出栈
-LinkList Pop(LinkStackList stack) {
-    LinkStackList out;
-    LinkStackList temp = stack;
+void Pop() {
+    LinkStackList del;
+    LinkStackList temp = linkStackList;
     if (temp->next) {
         while (temp->next->next) {
             temp = temp->next;
         }
-        out = temp->next;
+        del = temp->next;
         temp->next = NULL;
-        return out->link;
+        free(del);
+        return;
     } else {
         printf("栈为空");
+        return;
+    }
+}
+
+// 取栈顶元素
+LinkList GetTop() {
+    LinkStackList temp = linkStackList->next;
+    if (temp) {
+        while (temp->next) {
+            temp = temp->next;
+        }
+        return  temp->link;
+    } else {
+        printf("栈已经为空\n");
         return NULL;
     }
 }
@@ -125,7 +141,7 @@ int Check(char name[20]) {
 }
 
 // 更新文件大小信息
-// TODO 只能更新本层目录 不能向上递归
+// TODO 只能更新本层目录 不能向上递归更新信息
 void UpdateInfo() {
     int size = 0;
     LinkList temp = InitLinkList("");
@@ -152,7 +168,7 @@ void MakeFile(File *file) {
         currentDir->downNext->next = newNode;
         UpdateInfo();
     } else {
-        printf("文件为空");
+        printf("文件为空，没有新建文件\n");
         return;
     }
 }
@@ -161,7 +177,7 @@ void MakeFile(File *file) {
 void DeleteFile(char name[20]) {
     LinkList temp = InitLinkList("");
     LinkList delete = InitLinkList("");
-    temp = currentDir->downNext->next;
+    temp = currentDir->downNext;
     while (temp->next) {
         if (!strcmp(temp->next->file->name, name)) {
             printf("找到 %s \n", name);
@@ -233,21 +249,23 @@ void GoHome() {
     currentDir = rootLinkList;
     // 清空路径栈
     CleanStack(linkStackList);
-    Push(linkStackList, currentDir);
+    Push(currentDir);
 }
 
 // 返回上级目录
 void GoSuper() {
     if (linkStackList->next->next) {
-        currentDir = Pop(linkStackList);
+        Pop();
+        // 取链表顶部元素
+        currentDir = GetTop();
     } else {
         printf("已是根目录，不能再返回上级.\n");
     }
 }
 
 // 列出当前目录文件
-void Dir(LinkList linkList) {
-    LinkList temp = linkList->downNext->next;
+void Dir() {
+    LinkList temp = currentDir->downNext->next;
     printf("名称 \t\t 大小 \t\t 类型 \n");
     if (temp == NULL) {
         printf("\t\t<没有任何文件>\n");
@@ -362,7 +380,7 @@ void GetDir(LinkList linkList, char name[20]) {
     while (temp) {
         if (!strcmp(temp->file->name, name)) {
             printf("找到 %s ", name);
-            Push(linkStackList, temp);
+            Push(temp);
             currentDir = temp;
             return;
         }
@@ -385,7 +403,7 @@ void ExecuteCommand(char commandLine[10][20]) {
         system("cls");
     } else if (!strcmp(commandLine[0], "dir")) {
         printf("列出当前目录所有文件.\n");
-        Dir(currentDir);
+        Dir();
     } else if (!strcmp(commandLine[0], "mk")) {
         printf("新建文件.\n");
         if (commandLine[1] != NULL) {
@@ -555,7 +573,7 @@ int main() {
     LinkList linkList = InitLinkList(rootPath);
     // 初始化链表栈 压入根目录链表进栈
     linkStackList = InitStack();
-    Push(linkStackList, linkList);
+    Push(linkList);
     // 初始化全局变量
     rootLinkList = linkList;
     currentDir = linkList;
