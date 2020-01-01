@@ -141,7 +141,6 @@ int Check(char name[20]) {
 }
 
 // 更新文件大小信息
-// TODO 只能更新本层目录 不能向上递归更新信息
 void UpdateInfo() {
     int size = 0;
     LinkList temp = InitLinkList("");
@@ -265,6 +264,7 @@ void GoSuper() {
 
 // 列出当前目录文件
 void Dir() {
+    UpdateInfo();
     LinkList temp = currentDir->downNext->next;
     printf("名称 \t\t 大小 \t\t 类型 \n");
     if (temp == NULL) {
