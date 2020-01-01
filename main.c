@@ -16,7 +16,7 @@ typedef struct LinkNode {
     struct LinkNode *downNext; // 下级目录指针
 } LinkNode, *LinkList;
 
-// 路径栈
+// 文件链表栈
 typedef struct LinkStackNode {
     LinkList link;
     struct LinkStackNode *next;
@@ -33,7 +33,7 @@ char rootPath[] = "C:";
 
 // 帮助页
 void ShowWelcome();
-
+// 列出当前目录所有文件
 void Dir();
 
 // 初始化文件链表
@@ -42,10 +42,12 @@ LinkList InitLinkList(char name[20]) {
     LinkNode *downHead = (LinkNode *) malloc(sizeof(LinkNode));
     File *file = (File *) malloc(sizeof(File));
     strcpy(file->name, name);
-    head->file = file;
+    file->size = 0;
+    file->type = 0;
     downHead->file = file;
     downHead->next = NULL;
     downHead->downNext = NULL;
+    head->file = file;
     head->next = NULL;
     head->downNext = downHead;
 }
@@ -523,7 +525,7 @@ void ShowPath(LinkStackList stack) {
         stack = stack->next;
         printf("%s/", stack->link->file->name);
     }
-    printf(" > ");
+    printf(" >");
 }
 
 // 显示帮助菜单
