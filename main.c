@@ -17,17 +17,17 @@ typedef struct LinkNode {
 } LinkNode, *LinkList;
 
 // 路径栈
-typedef struct PathStackNode {
-    char name[20];
-    struct PathStackNode *next;
-} PathStackNode, *PathStackList;
+typedef struct LinkStackNode {
+    LinkList link;
+    struct LinkStackNode *next;
+} LinkStackNode, *LinkStackList;
 
 // 全局当前目录
 LinkList currentDir;
 // 全局根目录
 LinkList rootLinkList;
-// 全局路径栈
-PathStackList pathStackList;
+// 全局链表栈
+LinkStackList linkStackList;
 // 根目录名
 char rootPath[] = "C:";
 
@@ -39,53 +39,57 @@ void Dir(LinkList linkList);
 // 初始化文件链表
 LinkList InitLinkList(char name[20]) {
     LinkNode *head = (LinkNode *) malloc(sizeof(LinkNode));
+    LinkNode *downHead = (LinkNode *) malloc(sizeof(LinkNode));
     File *file = (File *) malloc(sizeof(File));
     strcpy(file->name, name);
     head->file = file;
+    downHead->file = file;
+    downHead->next = NULL;
+    downHead->downNext = NULL;
     head->next = NULL;
-    head->downNext = NULL;
-    return head;
+    head->downNext = downHead;
 }
 
-// 初始化路径栈
-PathStackList InitPathStack() {
-    PathStackNode *head = (PathStackNode *) malloc(sizeof(PathStackNode));
-    strcpy(head->name, "head");
+// 初始化链表栈
+LinkStackNode *InitStack() {
+    LinkStackNode *head = (LinkStackNode *) malloc(sizeof(LinkStackNode));
+    head->link = NULL;
     head->next = NULL;
     return head;
 }
 
 // 入栈
-void Push(PathStackList pathStackList, char name[20]) {
-    while (pathStackList->next) {
-        pathStackList = pathStackList->next;
+void Push(LinkStackList stack, LinkList linkList) {
+    while (stack) {
+        stack = stack->next;
     }
-    PathStackNode *newNode = (PathStackNode *) malloc(sizeof(PathStackNode));
-    strcpy(newNode->name, name);
-    newNode->next = pathStackList->next;
-    pathStackList->next = newNode;
+    LinkStackNode *newLink = (LinkStackNode *) malloc(sizeof(LinkStackNode));
+    newLink->link = linkList;
+    newLink->next = linkStackList->next;
+    linkStackList->next = newLink;
 }
 
 // 出栈
-void Pop(PathStackList pathStackList) {
-    PathStackNode *del;
-    PathStackList temp = pathStackList;
+LinkList Pop(LinkStackList stack) {
+    LinkStackList out;
+    LinkStackList temp = stack;
     if (temp->next) {
         while (temp->next->next) {
             temp = temp->next;
         }
-        del = temp->next;
+        out = temp->next;
         temp->next = NULL;
-        free(del);
+        return out->link;
     } else {
-        printf("路径栈为空\n ");
+        printf("栈为空");
+        return NULL;
     }
 }
 
 // 清空栈
-void CleanStack(PathStackList pathStackList) {
-    free(pathStackList);
-    pathStackList = InitPathStack();
+void CleanStack(LinkStackList stack) {
+    free(stack);
+    stack = InitStack();
 }
 
 // 操作确认
@@ -108,7 +112,7 @@ int GetConfirm(char name[20]) {
 int Check(char name[20]) {
     int pass = 0;
     LinkList temp = InitLinkList("");
-    temp = currentDir;
+    temp = currentDir->downNext;
     while (temp->next) {
         if (!strcmp(temp->next->file->name, name)) {
             pass = 0;
@@ -121,34 +125,34 @@ int Check(char name[20]) {
 }
 
 // 更新文件大小信息
-// TODO （待实现）当文件夹下新建一个文件时就获取其文件大小，更新其文件夹大小
+// TODO 只能更新本层目录 不能向上递归
 void UpdateInfo() {
     int size = 0;
     LinkList temp = InitLinkList("");
-    printf("currentDir %s\n", currentDir->file->name);
-    temp->next = currentDir->next;
+    temp->next = currentDir->downNext->next;
     while (temp) {
         size += temp->file->size;
         temp = temp->next;
     }
     printf("计算 %s 目录大小为 %d\n", currentDir->file->name, size);
     currentDir->file->size = size;
-    printf("currentDir->file->size %d.\n", currentDir->file->size);
 }
 
 // 新建文件
-void MakeFile(LinkList linkList, File *file) {
+void MakeFile(File *file) {
     if (file != NULL) {
         LinkNode *newNode = (LinkNode *) malloc(sizeof(LinkNode));
         newNode->file = file;
-        newNode->next = linkList->next;
+        newNode->next = currentDir->downNext->next;
         if (newNode->file->type == 0) {
             newNode->downNext = InitLinkList(file->name);
         } else {
             newNode->downNext = InitLinkList("<File>");
         }
-        linkList->next = newNode;
+        currentDir->downNext->next = newNode;
+        UpdateInfo();
     } else {
+        printf("文件为空");
         return;
     }
 }
@@ -157,7 +161,7 @@ void MakeFile(LinkList linkList, File *file) {
 void DeleteFile(char name[20]) {
     LinkList temp = InitLinkList("");
     LinkList delete = InitLinkList("");
-    temp = currentDir;
+    temp = currentDir->downNext->next;
     while (temp->next) {
         if (!strcmp(temp->next->file->name, name)) {
             printf("找到 %s \n", name);
@@ -181,7 +185,7 @@ void DeleteFile(char name[20]) {
 void RenameFile(char name[20]) {
     char newName[20];
     LinkList temp = InitLinkList("");
-    temp = currentDir;
+    temp = currentDir->downNext;
     while (temp->next) {
         if (!strcmp(temp->next->file->name, name)) {
             printf("找到 %s \n", name);
@@ -199,6 +203,7 @@ void RenameFile(char name[20]) {
         temp = temp->next;
     }
     printf("未找到 %s\n", name);
+    return;
 }
 
 // 生成文件信息
@@ -224,26 +229,25 @@ File *GetFile(char name[20], int type) {
 }
 
 // 返回根目录
-void GoHome(LinkList linkList) {
-    currentDir = linkList->downNext;
+void GoHome() {
+    currentDir = rootLinkList;
     // 清空路径栈
-    CleanStack(pathStackList);
-    Push(pathStackList, rootPath);
+    CleanStack(linkStackList);
+    Push(linkStackList, currentDir);
 }
 
 // 返回上级目录
 void GoSuper() {
-    // 弹出栈顶元素
-    if (pathStackList->next->next != NULL) {
-        Pop(pathStackList);
+    if (linkStackList->next->next) {
+        currentDir = Pop(linkStackList);
     } else {
-        printf("已是根目录，不能再返回上级目录\n");
+        printf("已是根目录，不能再返回上级.\n");
     }
 }
 
 // 列出当前目录文件
 void Dir(LinkList linkList) {
-    LinkList temp = linkList->next;
+    LinkList temp = linkList->downNext->next;
     printf("名称 \t\t 大小 \t\t 类型 \n");
     if (temp == NULL) {
         printf("\t\t<没有任何文件>\n");
@@ -264,7 +268,7 @@ void Dir(LinkList linkList) {
 // 取得列表文件数量
 int GetFileNumber(LinkList linkList) {
     int fileNum = 0;
-    LinkList temp = linkList->next;
+    LinkList temp = linkList->downNext->next;
     if (temp == NULL) {
         printf("\t\t<没有任何文件>\n");
     } else {
@@ -341,7 +345,7 @@ void SortFile(LinkList linkList, int type) {
         printf("\t\t<没有任何文件>\n");
         return;
     } else {
-        LinkList temp = linkList->next;
+        LinkList temp = linkList->downNext->next;
         while (temp) {
             fileList[i] = *temp->file;
             temp = temp->next;
@@ -353,30 +357,23 @@ void SortFile(LinkList linkList, int type) {
 }
 
 // 取得目录
-void GetDir(char name[20]) {
-    LinkList temp = currentDir->next;
-    if (temp != NULL) {
-        while (temp) {
-            if (!strcmp(temp->file->name, name)) {
-                printf("GetDir(%s)\n", temp->file->name);
-                temp->downNext = InitLinkList(name);
-                currentDir = temp->downNext;
-                // 目录名压入栈
-                Push(pathStackList, name);
-                return;
-            }
-            temp = temp->next;
+void GetDir(LinkList linkList, char name[20]) {
+    LinkList temp = linkList->downNext->next;
+    while (temp) {
+        if (!strcmp(temp->file->name, name)) {
+            printf("找到 %s ", name);
+            Push(linkStackList, temp);
+            currentDir = temp;
+            return;
         }
-        printf("没有找到名为 %s 的文件.\n", name);
-        return;
-    } else {
-        printf("<没有任何内容>\n");
-        return;
+        temp = temp->next;
     }
+    printf("未找到 %s", name);
+    return;
 }
 
 // 命令识别
-void ExecuteCommand(LinkList  linkList, char commandLine[10][20]) {
+void ExecuteCommand(char commandLine[10][20]) {
     if (!strcmp(commandLine[0], "exit")) {
         printf("退出程序.\n");
         exit(0);
@@ -396,7 +393,7 @@ void ExecuteCommand(LinkList  linkList, char commandLine[10][20]) {
                 printf("参数不正确，如果你不知道用法请键入 help 了解。\n");
                 return;
             } else {
-                MakeFile(currentDir, GetFile(commandLine[1], 1));
+                MakeFile(GetFile(commandLine[1], 1));
             }
         } else {
             return;
@@ -408,7 +405,7 @@ void ExecuteCommand(LinkList  linkList, char commandLine[10][20]) {
                 printf("参数不正确，如果你不知道用法请键入 help 了解。\n");
                 return;
             } else {
-                MakeFile(currentDir, GetFile(commandLine[1], 0));
+                MakeFile(GetFile(commandLine[1], 0));
             }
         } else {
             return;
@@ -424,10 +421,10 @@ void ExecuteCommand(LinkList  linkList, char commandLine[10][20]) {
                 GoSuper();
             } else if (!strcmp(commandLine[1], "/")) {
                 printf("返回根目录.\n");
-                GoHome(linkList);
+                GoHome();
             } else {
                 printf("打开 %s \n", commandLine[1]);
-                GetDir(commandLine[1]);
+                GetDir(currentDir, commandLine[1]);
             }
         } else {
             return;
@@ -470,37 +467,35 @@ void ExecuteCommand(LinkList  linkList, char commandLine[10][20]) {
 }
 
 // 自动生成目录文件
-void AutoGenterateFile(LinkList linkList) {
-    MakeFile(currentDir, GetFile("Music", 0));
-    MakeFile(currentDir, GetFile("eclipse.exe", 1));
-    MakeFile(currentDir, GetFile("User", 0));
-    MakeFile(currentDir, GetFile("main.exe", 1));
-    MakeFile(currentDir, GetFile("regedit.exe", 1));
-    MakeFile(currentDir, GetFile("EFI", 0));
-    MakeFile(currentDir, GetFile("setupact.log", 1));
-    MakeFile(currentDir, GetFile("Windows", 0));
-    MakeFile(currentDir, GetFile("winhlp32.exe", 1));
-    MakeFile(currentDir, GetFile("ProgramData", 0));
-    MakeFile(currentDir, GetFile("whois.exe", 1));
-    MakeFile(currentDir, GetFile("system.ini", 1));
-    MakeFile(currentDir, GetFile("Document", 0));
-    GetDir("User");
-    printf("\nAutoGenterateFile(). \n");
-    MakeFile(currentDir, GetFile("john", 0));
-    MakeFile(currentDir, GetFile("config.con", 1));
-    MakeFile(currentDir, GetFile("phl", 0));
-    MakeFile(currentDir, GetFile("fyl", 0));
-//    Dir(currentDir);
+void AutoGenterateFile() {
+    MakeFile(GetFile("Music", 0));
+    MakeFile(GetFile("eclipse.exe", 1));
+    MakeFile(GetFile("User", 0));
+    MakeFile(GetFile("main.exe", 1));
+    MakeFile(GetFile("regedit.exe", 1));
+    MakeFile(GetFile("EFI", 0));
+    MakeFile(GetFile("setupact.log", 1));
+    MakeFile(GetFile("Windows", 0));
+    MakeFile(GetFile("winhlp32.exe", 1));
+    MakeFile(GetFile("ProgramData", 0));
+    MakeFile(GetFile("whois.exe", 1));
+    MakeFile(GetFile("system.ini", 1));
+    MakeFile(GetFile("Document", 0));
+    LinkList watch = currentDir;
+    GetDir(currentDir, "User");
+    MakeFile(GetFile("john", 0));
+    MakeFile(GetFile("config.con", 1));
+    MakeFile(GetFile("phl", 0));
+    MakeFile(GetFile("fyl", 0));
 //    UpdateInfo();
-    GoHome(linkList);
+    GoHome();
 }
 
 // 显示路径
-void ShowPath(PathStackList pathStackList) {
-    PathStackList temp = pathStackList->next;
-    while (temp) {
-        printf("%s/", temp->name);
-        temp = temp->next;
+void ShowPath(LinkStackList stack) {
+    while (stack->next) {
+        stack = stack->next;
+        printf("%s/", stack->link->file->name);
     }
     printf(" > ");
 }
@@ -525,7 +520,7 @@ void ShowWelcome() {
 }
 
 // 命令行输入
-void ShowCommandLine(LinkList linkList) {
+void ShowCommandLine() {
     char commandLine[30];
     char parameter[10][20];
     char spilt[] = " ";
@@ -533,7 +528,7 @@ void ShowCommandLine(LinkList linkList) {
     while (1) {
         int i = 0;
         // 打印当前路径
-        ShowPath(pathStackList);
+        ShowPath(linkStackList);
         // 等待用户输入
         gets(commandLine);
         // 命令字符串分割
@@ -545,33 +540,28 @@ void ShowCommandLine(LinkList linkList) {
             i++;
         }
         // 执行命令
-        ExecuteCommand(linkList, parameter);
+        ExecuteCommand(parameter);
         // 清除数组内容
         memset(parameter, 0, sizeof parameter);
         memset(commandLine, 0, sizeof commandLine);
+        LinkStackList watch = linkStackList;
         printf("\n");
     }
-}
-
-// 测试
-void test() {
-
 }
 
 // 主函数
 int main() {
     // 初始化文件链表
     LinkList linkList = InitLinkList(rootPath);
-    linkList->downNext = InitLinkList(rootPath);
-    // 初始化路径栈
-    pathStackList = InitPathStack();
-    Push(pathStackList, rootPath);
+    // 初始化链表栈 压入根目录链表进栈
+    linkStackList = InitStack();
+    Push(linkStackList, linkList);
     // 初始化全局变量
-    rootLinkList = linkList->downNext;
-    currentDir = linkList->downNext;
-    // 添加预置数据
-    AutoGenterateFile(linkList);
+    rootLinkList = linkList;
+    currentDir = linkList;
+    // 自动生成文件信息
+    AutoGenterateFile();
     // 输出命令行界面
-    ShowCommandLine(linkList);
+    ShowCommandLine();
     return 0;
 }
