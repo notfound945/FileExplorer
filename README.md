@@ -20,6 +20,23 @@
 + 目录文件大小统计
 + 支持返回上级目录及根目录操作
 
+# 演示效果
+
+![效果图1](https://github.com/notfound945/FileExplorer/blob/master/img/effect1.png)
+
+![效果图2](https://github.com/notfound945/FileExplorer/blob/master/img/effect2.png)
+
+![效果图3](https://github.com/notfound945/FileExplorer/blob/master/img/effect3.png)
+
+![效果图4](https://github.com/notfound945/FileExplorer/blob/master/img/effect4.png)
+
+![效果图5](https://github.com/notfound945/FileExplorer/blob/master/img/effect5.png)
+
+![效果图6](https://github.com/notfound945/FileExplorer/blob/master/img/effect6.png)	
+
+![效果图7](https://github.com/notfound945/FileExplorer/blob/master/img/effect7.png)
+
+
 # 开发语言
 
 + **C 语言（C 99）**
@@ -46,9 +63,9 @@
 
 # 源码分析
 
-+ **主程序**
+##  主程序
 
-> main.exe
+> main.c
 
 + File 文件结构体
 
@@ -200,3 +217,13 @@ char rootPath[] = "C:";
 + main()
 
   主函数入口，链表，链栈，载入数据都会从此开始
+  
+## 测试程序
+
+>linklist_test.c
+
+链表测试示例源码
+
+>linkstack_test.c
+
+链栈测试示例源码
